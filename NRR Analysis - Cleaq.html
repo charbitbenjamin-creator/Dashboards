@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cleaq — NRR Analysis 2025+</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --red: #ff5c6c;
+    --orange: #ffb347;
+    --text: #e8eaf6;
+    --muted: #7b82a8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; padding: 32px 24px; }
+
+  h1 { font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+
+  /* KPI row */
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 26px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .kpi .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+  .kpi .value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+  .kpi .delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .up { color: var(--accent2); } .dn { color: var(--red); } .neutral { color: var(--muted); }
+  .kpi.c-green .value { color: var(--accent2); }
+  .kpi.c-purple .value { color: var(--accent); }
+  .kpi.c-red .value { color: var(--red); }
+  .kpi.c-orange .value { color: var(--orange); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-desc { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+  .badge-purple { background: rgba(108,99,255,.12); color: var(--accent); border: 1px solid rgba(108,99,255,.3); }
+  .badge-green  { background: rgba(0,212,170,.1);   color: var(--accent2); border: 1px solid rgba(0,212,170,.3); }
+  .badge-orange { background: rgba(255,179,71,.12); color: var(--orange);  border: 1px solid rgba(255,179,71,.3); }
+  .badge-red    { background: rgba(255,92,108,.1);  color: var(--red);     border: 1px solid rgba(255,92,108,.3); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  canvas { max-height: 270px; }
+  .canvas-sm { max-height: 220px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 11px; color: var(--muted); }
+  .li { display: flex; align-items: center; gap: 6px; }
+  .dot  { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .lline { width: 16px; height: 2px; flex-shrink: 0; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { color: var(--muted); font-weight: 500; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  td { padding: 8px 10px; border-bottom: 1px solid rgba(46,51,80,.4); }
+  tr:last-child td { border-bottom: none; }
+  .bar-bg { background: var(--surface2); border-radius: 3px; height: 5px; width: 90px; }
+  .bar-fill { border-radius: 3px; height: 5px; }
+
+  @media(max-width:900px){ .kpi-row{grid-template-columns:repeat(3,1fr);} .two-col{grid-template-columns:1fr;} }
+  @media(max-width:600px){ .kpi-row{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<h1>Cleaq — NRR Analysis · 2025 onwards</h1>
+<p class="subtitle">Combined entity (post Mobile Club merger) · January 2025 – March 2026 · Updated March 2026</p>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi c-purple">
+    <div class="label">MRR Jan 2025</div>
+    <div class="value">€494K</div>
+    <div class="sub">Combined entity baseline</div>
+  </div>
+  <div class="kpi c-green">
+    <div class="label">MRR Mar 2026</div>
+    <div class="value">€574K</div>
+    <div class="delta up">▲ +16.2% since Jan 2025</div>
+  </div>
+  <div class="kpi c-orange">
+    <div class="label">Avg monthly net new MRR</div>
+    <div class="value">€4.5K</div>
+    <div class="sub">Jan 2025 – Mar 2026</div>
+  </div>
+  <div class="kpi c-red">
+    <div class="label">Avg monthly churn rate</div>
+    <div class="value">1.21%</div>
+    <div class="sub">~14.6% annualised</div>
+  </div>
+  <div class="kpi c-green">
+    <div class="label">Nov 2024 cohort NRR</div>
+    <div class="value">115.6%</div>
+    <div class="sub">784 customers · 12M rolling</div>
+  </div>
+</div>
+
+<!-- MRR WATERFALL -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">Monthly MRR Movement</div>
+      <div class="card-desc">New, Expansion, Contraction and Churn MRR each month. Hover for details.</div>
+    </div>
+    <span class="badge badge-purple">Monthly</span>
+  </div>
+  <canvas id="waterfallChart"></canvas>
+  <div class="legend">
+    <div class="li"><div class="dot" style="background:#00d4aa"></div> New MRR</div>
+    <div class="li"><div class="dot" style="background:#6c63ff"></div> Expansion MRR</div>
+    <div class="li"><div class="dot" style="background:#ffb347"></div> Contraction MRR</div>
+    <div class="li"><div class="dot" style="background:#ff5c6c"></div> Churned MRR</div>
+    <div class="li"><div class="lline" style="background:#e8eaf6"></div> Total MRR (right axis)</div>
+  </div>
+</div>
+
+<!-- MRR + CHURN RATE -->
+<div class="two-col">
+  <div class="card" style="margin-bottom:0">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Monthly Churn Rate (%)</div>
+        <div class="card-desc">MRR churned / prior month MRR</div>
+      </div>
+      <span class="badge badge-red">Churn</span>
+    </div>
+    <canvas id="churnChart" class="canvas-sm"></canvas>
+    <div class="legend">
+      <div class="li"><div class="dot" style="background:#ff5c6c"></div> Monthly churn rate</div>
+      <div class="li"><div class="lline" style="background:#ffb347;border-top:2px dashed #ffb347"></div> 2% warning threshold</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:0">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Nov 2024 Cohort — NRR Index</div>
+        <div class="card-desc">784 customers at merger date. Nov 2024 = 100%.</div>
+      </div>
+      <span class="badge badge-orange">Post-merger cohort</span>
+    </div>
+    <canvas id="cohortChart" class="canvas-sm"></canvas>
+    <div class="legend">
+      <div class="li"><div class="dot" style="background:#ffb347"></div> MRR index (Nov 2024 = 100%)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ROLLING 12M NRR -->
+<div class="card" style="margin-top:20px">
+  <div class="card-header">
+    <div>
+      <div class="card-title">Rolling 12-Month NRR — 2025 Cohorts</div>
+      <div class="card-desc">Only 3 data points available (Jan–Mar 2025, each compared to Jan–Mar 2026). More cohorts will unlock as months pass.</div>
+    </div>
+    <span class="badge badge-purple">12M Rolling</span>
+  </div>
+  <div class="two-col" style="margin-bottom:0; gap:14px;">
+    <canvas id="nrrChart" class="canvas-sm"></canvas>
+    <div style="display:flex;flex-direction:column;justify-content:center;gap:10px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Cohort</th><th>Customers</th><th>NRR</th><th>Gross RR</th><th>Expansion</th><th>Contraction</th><th>Churn</th>
+          </tr>
+        </thead>
+        <tbody id="nrrTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MONTHLY DETAIL TABLE -->
+<div class="card" style="margin-top:20px">
+  <div class="card-header">
+    <div>
+      <div class="card-title">Monthly MRR Detail</div>
+      <div class="card-desc">Full month-by-month breakdown · Jan 2025 – Mar 2026</div>
+    </div>
+    <span class="badge badge-green">All months</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Active</th>
+        <th>Total MRR</th>
+        <th>Net New</th>
+        <th>New MRR</th>
+        <th>Expansion</th>
+        <th>Contraction</th>
+        <th>Churned</th>
+        <th>Churn %</th>
+        <th>MRR bar</th>
+      </tr>
+    </thead>
+    <tbody id="detailTable"></tbody>
+  </table>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const MONTHLY = [{"month":"2025-01","total_mrr":493460.86,"prev_mrr":493460.86,"net_new_mrr":100.42,"new_mrr":3394.93,"expansion_mrr":20383.72,"contraction_mrr":14806.45,"churned_mrr":4871.78,"churn_rate_pct":1.0,"n_active":1139,"n_new":5,"n_churned":8,"n_expanded":319,"n_contracted":253},{"month":"2025-02","total_mrr":491537.17,"prev_mrr":493460.86,"net_new_mrr":-2076.69,"new_mrr":2142.3,"expansion_mrr":16215.8,"contraction_mrr":13596.94,"churned_mrr":6684.85,"churn_rate_pct":1.35,"n_active":1128,"n_new":2,"n_churned":14,"n_expanded":274,"n_contracted":241},{"month":"2025-03","total_mrr":500024.09,"prev_mrr":491537.17,"net_new_mrr":8486.92,"new_mrr":2976.3,"expansion_mrr":17950.05,"contraction_mrr":9058.66,"churned_mrr":4007.17,"churn_rate_pct":0.82,"n_active":1116,"n_new":6,"n_churned":14,"n_expanded":295,"n_contracted":208},{"month":"2025-04","total_mrr":488513.69,"prev_mrr":500024.09,"net_new_mrr":-11510.4,"new_mrr":503.24,"expansion_mrr":8775.73,"contraction_mrr":12369.3,"churned_mrr":8711.27,"churn_rate_pct":1.74,"n_active":1097,"n_new":2,"n_churned":18,"n_expanded":178,"n_contracted":241},{"month":"2025-05","total_mrr":495632.45,"prev_mrr":488513.69,"net_new_mrr":7118.76,"new_mrr":1506.24,"expansion_mrr":17170.6,"contraction_mrr":9299.72,"churned_mrr":2597.16,"churn_rate_pct":0.53,"n_active":1102,"n_new":6,"n_churned":3,"n_expanded":311,"n_contracted":196},{"month":"2025-06","total_mrr":492627.48,"prev_mrr":495632.45,"net_new_mrr":-3004.97,"new_mrr":945.3,"expansion_mrr":16089.09,"contraction_mrr":8715.58,"churned_mrr":11411.28,"churn_rate_pct":2.3,"n_active":1108,"n_new":2,"n_churned":11,"n_expanded":265,"n_contracted":186},{"month":"2025-07","total_mrr":491073.83,"prev_mrr":492627.48,"net_new_mrr":-1553.65,"new_mrr":916.27,"expansion_mrr":13658.0,"contraction_mrr":7005.5,"churned_mrr":13107.82,"churn_rate_pct":2.66,"n_active":1107,"n_new":2,"n_churned":16,"n_expanded":236,"n_contracted":154},{"month":"2025-08","total_mrr":512204.27,"prev_mrr":491073.83,"net_new_mrr":21130.44,"new_mrr":4367.89,"expansion_mrr":17887.47,"contraction_mrr":7058.18,"churned_mrr":1579.64,"churn_rate_pct":0.32,"n_active":1120,"n_new":12,"n_churned":2,"n_expanded":325,"n_contracted":168},{"month":"2025-09","total_mrr":523092.8,"prev_mrr":512204.27,"net_new_mrr":10888.53,"new_mrr":3027.24,"expansion_mrr":18908.76,"contraction_mrr":6371.92,"churned_mrr":4745.45,"churn_rate_pct":0.93,"n_active":1122,"n_new":8,"n_churned":7,"n_expanded":308,"n_contracted":159},{"month":"2025-10","total_mrr":535637.46,"prev_mrr":523092.8,"net_new_mrr":12544.66,"new_mrr":3678.46,"expansion_mrr":24967.02,"contraction_mrr":14953.83,"churned_mrr":2979.98,"churn_rate_pct":0.57,"n_active":1127,"n_new":9,"n_churned":4,"n_expanded":349,"n_contracted":241},{"month":"2025-11","total_mrr":538931.83,"prev_mrr":535637.46,"net_new_mrr":3294.37,"new_mrr":3915.73,"expansion_mrr":20848.23,"contraction_mrr":17911.76,"churned_mrr":4030.31,"churn_rate_pct":0.75,"n_active":1133,"n_new":11,"n_churned":5,"n_expanded":325,"n_contracted":268},{"month":"2025-12","total_mrr":537756.93,"prev_mrr":538931.83,"net_new_mrr":-1174.9,"new_mrr":2975.8,"expansion_mrr":20760.61,"contraction_mrr":16690.69,"churned_mrr":8978.02,"churn_rate_pct":1.67,"n_active":1128,"n_new":5,"n_churned":12,"n_expanded":315,"n_contracted":277},{"month":"2026-01","total_mrr":544544.27,"prev_mrr":537756.93,"net_new_mrr":6787.34,"new_mrr":9536.46,"expansion_mrr":19449.95,"contraction_mrr":15334.93,"churned_mrr":6891.04,"churn_rate_pct":1.28,"n_active":1146,"n_new":21,"n_churned":7,"n_expanded":300,"n_contracted":248},{"month":"2026-02","total_mrr":565925.63,"prev_mrr":544544.27,"net_new_mrr":21381.36,"new_mrr":18080.12,"expansion_mrr":23622.15,"contraction_mrr":18567.36,"churned_mrr":1845.55,"churn_rate_pct":0.34,"n_active":1192,"n_new":51,"n_churned":2,"n_expanded":330,"n_contracted":278},{"month":"2026-03","total_mrr":573594.08,"prev_mrr":565925.63,"net_new_mrr":7668.45,"new_mrr":3996.28,"expansion_mrr":29339.32,"contraction_mrr":14719.1,"churned_mrr":10948.05,"churn_rate_pct":1.93,"n_active":1157,"n_new":5,"n_churned":37,"n_expanded":340,"n_contracted":231}];
+
+const ROLLING = [{"month":"2025-01","cohort_size":1139,"start_mrr":493460.86,"end_mrr":486731.11,"nrr":98.64,"gross_rr":81.26,"churn_pct":10.55,"contraction_pct":8.19,"expansion_pct":17.49},{"month":"2025-02","cohort_size":1128,"start_mrr":491537.17,"end_mrr":492990.79,"nrr":100.3,"gross_rr":82.11,"churn_pct":9.23,"contraction_pct":8.65,"expansion_pct":18.55},{"month":"2025-03","cohort_size":1116,"start_mrr":500024.09,"end_mrr":489514.78,"nrr":97.9,"gross_rr":79.65,"churn_pct":11.46,"contraction_pct":8.89,"expansion_pct":18.25}];
+
+const COHORT = [{"month_str":"2025-01","TOTAL_INVOICED_MRR":438265.84,"cumulative_nrr":110.53},{"month_str":"2025-02","TOTAL_INVOICED_MRR":436091.89,"cumulative_nrr":109.98},{"month_str":"2025-03","TOTAL_INVOICED_MRR":441831.01,"cumulative_nrr":111.43},{"month_str":"2025-04","TOTAL_INVOICED_MRR":438514.36,"cumulative_nrr":110.59},{"month_str":"2025-05","TOTAL_INVOICED_MRR":444586.02,"cumulative_nrr":112.12},{"month_str":"2025-06","TOTAL_INVOICED_MRR":438401.61,"cumulative_nrr":110.56},{"month_str":"2025-07","TOTAL_INVOICED_MRR":436773.48,"cumulative_nrr":110.15},{"month_str":"2025-08","TOTAL_INVOICED_MRR":452288.91,"cumulative_nrr":114.07},{"month_str":"2025-09","TOTAL_INVOICED_MRR":455508.93,"cumulative_nrr":114.88},{"month_str":"2025-10","TOTAL_INVOICED_MRR":463264.64,"cumulative_nrr":116.83},{"month_str":"2025-11","TOTAL_INVOICED_MRR":458547.16,"cumulative_nrr":115.64},{"month_str":"2025-12","TOTAL_INVOICED_MRR":456860.73,"cumulative_nrr":115.22},{"month_str":"2026-01","TOTAL_INVOICED_MRR":451826.38,"cumulative_nrr":113.95},{"month_str":"2026-02","TOTAL_INVOICED_MRR":455142.31,"cumulative_nrr":114.78},{"month_str":"2026-03","TOTAL_INVOICED_MRR":450418.12,"cumulative_nrr":113.59}];
+
+const fmtE = n => '€' + Math.round(n).toLocaleString('fr-FR');
+const fmtP = n => n != null ? n.toFixed(1) + '%' : '—';
+const labels = MONTHLY.map(r => r.month);
+
+// ── WATERFALL CHART ───────────────────────────────────────────────────
+const wCtx = document.getElementById('waterfallChart').getContext('2d');
+new Chart(wCtx, {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      { label: 'New MRR',        data: MONTHLY.map(r => r.new_mrr),        backgroundColor: 'rgba(0,212,170,0.8)',  stack: 'pos', borderRadius: 2 },
+      { label: 'Expansion',      data: MONTHLY.map(r => r.expansion_mrr),  backgroundColor: 'rgba(108,99,255,0.8)', stack: 'pos', borderRadius: 2 },
+      { label: 'Contraction',    data: MONTHLY.map(r => -r.contraction_mrr), backgroundColor: 'rgba(255,179,71,0.8)', stack: 'neg', borderRadius: 2 },
+      { label: 'Churned',        data: MONTHLY.map(r => -r.churned_mrr),   backgroundColor: 'rgba(255,92,108,0.8)', stack: 'neg', borderRadius: 2 },
+      {
+        label: 'Total MRR', type: 'line',
+        data: MONTHLY.map(r => r.total_mrr),
+        borderColor: 'rgba(232,234,246,0.7)', backgroundColor: 'transparent',
+        yAxisID: 'y2', tension: 0.3, borderWidth: 2, pointRadius: 3,
+        pointBackgroundColor: '#e8eaf6'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#22263a', borderColor: '#2e3350', borderWidth: 1,
+        titleColor: '#e8eaf6', bodyColor: '#7b82a8',
+        callbacks: {
+          label: ctx => {
+            if (ctx.dataset.label === 'Total MRR') return ` Total MRR: ${fmtE(ctx.parsed.y)}`;
+            const v = Math.abs(ctx.parsed.y);
+            const sign = ctx.parsed.y >= 0 ? '+' : '-';
+            return ` ${ctx.dataset.label}: ${sign}${fmtE(v)}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: 'rgba(46,51,80,.5)' }, ticks: { color: '#7b82a8', font: { size: 10 } } },
+      y: {
+        stacked: true, grid: { color: 'rgba(46,51,80,.5)' },
+        ticks: { color: '#7b82a8', font: { size: 10 }, callback: v => (v >= 0 ? '+' : '') + fmtE(v) },
+        title: { display: true, text: 'MRR movement (€)', color: '#7b82a8', font: { size: 10 } }
+      },
+      y2: {
+        position: 'right', grid: { display: false },
+        ticks: { color: '#7b82a8', font: { size: 10 }, callback: v => fmtE(v) },
+        title: { display: true, text: 'Total MRR (€)', color: '#7b82a8', font: { size: 10 } },
+        min: 400000, max: 650000
+      }
+    }
+  }
+});
+
+// ── CHURN RATE CHART ─────────────────────────────────────────────────
+const cCtx = document.getElementById('churnChart').getContext('2d');
+new Chart(cCtx, {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Churn rate',
+        data: MONTHLY.map(r => r.churn_rate_pct),
+        backgroundColor: MONTHLY.map(r => r.churn_rate_pct >= 2 ? 'rgba(255,92,108,0.85)' : 'rgba(255,92,108,0.5)'),
+        borderRadius: 3,
+      },
+      {
+        label: '2% threshold', type: 'line',
+        data: MONTHLY.map(() => 2),
+        borderColor: 'rgba(255,179,71,0.7)', backgroundColor: 'transparent',
+        borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#22263a', borderColor: '#2e3350', borderWidth: 1,
+        titleColor: '#e8eaf6', bodyColor: '#7b82a8',
+        callbacks: {
+          label: (ctx) => {
+            if (ctx.datasetIndex > 0) return null;
+            const r = MONTHLY[ctx.dataIndex];
+            return [` Churn rate: ${r.churn_rate_pct.toFixed(2)}%`, ` Churned MRR: ${fmtE(r.churned_mrr)}`, ` Churned customers: ${r.n_churned}`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(46,51,80,.5)' }, ticks: { color: '#7b82a8', font: { size: 10 } } },
+      y: {
+        grid: { color: 'rgba(46,51,80,.5)' },
+        ticks: { color: '#7b82a8', font: { size: 10 }, callback: v => v + '%' },
+        min: 0, max: 3.5,
+        title: { display: true, text: 'Monthly churn rate (%)', color: '#7b82a8', font: { size: 10 } }
+      }
+    }
+  }
+});
+
+// ── NOV 2024 COHORT CHART ────────────────────────────────────────────
+const cohCtx = document.getElementById('cohortChart').getContext('2d');
+new Chart(cohCtx, {
+  type: 'line',
+  data: {
+    labels: COHORT.map(r => r.month_str),
+    datasets: [
+      {
+        label: 'Cohort NRR Index',
+        data: COHORT.map(r => r.cumulative_nrr),
+        borderColor: '#ffb347', backgroundColor: 'rgba(255,179,71,0.08)', fill: true,
+        tension: 0.35, borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#ffb347'
+      },
+      {
+        label: '100%',
+        data: COHORT.map(() => 100),
+        borderColor: 'rgba(100,100,120,0.35)', backgroundColor: 'transparent',
+        borderWidth: 1, borderDash: [5, 4], pointRadius: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#22263a', borderColor: '#2e3350', borderWidth: 1,
+        titleColor: '#e8eaf6', bodyColor: '#7b82a8',
+        callbacks: {
+          label: ctx => ctx.datasetIndex === 0
+            ? ` NRR Index: ${ctx.parsed.y.toFixed(1)}%`
+            : null,
+          afterBody: items => [` MRR: ${fmtE(COHORT[items[0].dataIndex].TOTAL_INVOICED_MRR)}`]
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(46,51,80,.5)' }, ticks: { color: '#7b82a8', font: { size: 9 } } },
+      y: {
+        grid: { color: 'rgba(46,51,80,.5)' },
+        ticks: { color: '#7b82a8', font: { size: 10 }, callback: v => v + '%' },
+        min: 95, max: 125,
+        title: { display: true, text: 'MRR Index (Nov 2024 = 100%)', color: '#7b82a8', font: { size: 10 } }
+      }
+    }
+  }
+});
+
+// ── ROLLING 12M NRR CHART ────────────────────────────────────────────
+const nrrCtx = document.getElementById('nrrChart').getContext('2d');
+new Chart(nrrCtx, {
+  type: 'bar',
+  data: {
+    labels: ROLLING.map(r => r.month + ' → ' + (parseInt(r.month.slice(0,4))+1) + r.month.slice(4)),
+    datasets: [
+      { label: 'NRR', data: ROLLING.map(r => r.nrr), backgroundColor: ROLLING.map(r => r.nrr >= 100 ? 'rgba(108,99,255,0.7)' : 'rgba(255,92,108,0.7)'), borderRadius: 4 },
+      { label: '100%', type: 'line', data: ROLLING.map(() => 100), borderColor: 'rgba(200,200,220,0.4)', backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [5,4], pointRadius: 0 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#22263a', borderColor: '#2e3350', borderWidth: 1,
+        titleColor: '#e8eaf6', bodyColor: '#7b82a8',
+        callbacks: {
+          label: ctx => ctx.datasetIndex === 0 ? ` NRR: ${ctx.parsed.y.toFixed(1)}%` : null,
+          afterBody: items => {
+            const r = ROLLING[items[0].dataIndex];
+            return [` Gross RR: ${r.gross_rr.toFixed(1)}%`, ` Expansion: +${r.expansion_pct.toFixed(1)}%`, ` Contraction: -${r.contraction_pct.toFixed(1)}%`, ` Churn: -${r.churn_pct.toFixed(1)}%`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(46,51,80,.5)' }, ticks: { color: '#7b82a8', font: { size: 10 } } },
+      y: {
+        grid: { color: 'rgba(46,51,80,.5)' },
+        ticks: { color: '#7b82a8', font: { size: 10 }, callback: v => v + '%' },
+        min: 90, max: 110,
+        title: { display: true, text: 'NRR (%)', color: '#7b82a8', font: { size: 10 } }
+      }
+    }
+  }
+});
+
+// ── ROLLING NRR TABLE ────────────────────────────────────────────────
+const nrrTbody = document.getElementById('nrrTable');
+ROLLING.forEach(r => {
+  const nrrCol = r.nrr >= 100 ? 'up' : 'dn';
+  nrrTbody.innerHTML += `
+    <tr>
+      <td><strong>${r.month} → ${parseInt(r.month.slice(0,4))+1}${r.month.slice(4)}</strong></td>
+      <td>${r.cohort_size}</td>
+      <td class="${nrrCol}"><strong>${r.nrr.toFixed(1)}%</strong></td>
+      <td class="neutral">${r.gross_rr.toFixed(1)}%</td>
+      <td class="up">+${r.expansion_pct.toFixed(1)}%</td>
+      <td class="dn">-${r.contraction_pct.toFixed(1)}%</td>
+      <td class="dn">-${r.churn_pct.toFixed(1)}%</td>
+    </tr>`;
+});
+
+// ── MONTHLY DETAIL TABLE ─────────────────────────────────────────────
+const dTbody = document.getElementById('detailTable');
+const maxMRR = Math.max(...MONTHLY.map(r => r.total_mrr));
+MONTHLY.forEach(r => {
+  const netCol = r.net_new_mrr >= 0 ? 'up' : 'dn';
+  const churnCol = r.churn_rate_pct >= 2 ? 'dn' : r.churn_rate_pct >= 1.5 ? 'neutral' : 'up';
+  const barW = Math.round((r.total_mrr / maxMRR) * 100);
+  const barColor = r.total_mrr >= 550000 ? '#00d4aa' : '#6c63ff';
+  dTbody.innerHTML += `
+    <tr>
+      <td><strong>${r.month}</strong></td>
+      <td>${r.n_active}</td>
+      <td>${fmtE(r.total_mrr)}</td>
+      <td class="${netCol}">${r.net_new_mrr >= 0 ? '+' : ''}${fmtE(r.net_new_mrr)}</td>
+      <td class="up">+${fmtE(r.new_mrr)}</td>
+      <td class="up">+${fmtE(r.expansion_mrr)}</td>
+      <td class="dn">-${fmtE(r.contraction_mrr)}</td>
+      <td class="dn">-${fmtE(r.churned_mrr)}</td>
+      <td class="${churnCol}">${r.churn_rate_pct.toFixed(2)}%</td>
+      <td><div class="bar-bg"><div class="bar-fill" style="width:${barW}%;background:${barColor}"></div></div></td>
+    </tr>`;
+});
+</script>
+</body>
+</html>
